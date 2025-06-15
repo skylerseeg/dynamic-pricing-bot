@@ -1,0 +1,52 @@
+{
+    "modules": [
+      {
+        "module": "HTTP",
+        "action": "Make a request",
+        "parameters": {
+          "url": "https://api.rawmaterials.com/price",
+          "method": "GET",
+          "parseResponse": true
+        },
+        "output": "index"
+      },
+      {
+        "module": "HTTP",
+        "action": "Make a request",
+        "parameters": {
+          "url": "https://api.competitor.com/feed",
+          "method": "GET",
+          "parseResponse": true
+        },
+        "output": "comp"
+      },
+      {
+        "module": "Tools",
+        "action": "Set variable",
+        "parameters": {
+          "variables": {
+            "newPrice": "min(max(index.value * 1.02; comp.median * 0.98); comp.median * 1.05)"
+          }
+        }
+      },
+      {
+        "module": "HTTP",
+        "action": "Make a request",
+        "parameters": {
+          "url": "https://api.yourstore.com/products/123/price",
+          "method": "POST",
+          "headers": { "Content-Type": "application/json" },
+          "body": { "price": "{{newPrice}}" }
+        }
+      }
+    ],
+    "connections": [
+      { "fromModule": 0, "toModule": 2 },
+      { "fromModule": 1, "toModule": 2 },
+      { "fromModule": 2, "toModule": 3 }
+    ],
+    "settings": {
+      "schedule": { "type": "interval", "intervalSeconds": 3600 }
+    }
+  }
+  

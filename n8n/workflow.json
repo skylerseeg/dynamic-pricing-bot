@@ -1,0 +1,70 @@
+{
+    "name": "Dynamic Pricing Bot",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "https://api.rawmaterials.com/price",
+          "responseFormat": "json"
+        },
+        "name": "Get Index Price",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [250, 200]
+      },
+      {
+        "parameters": {
+          "url": "https://api.competitor.com/feed",
+          "responseFormat": "json"
+        },
+        "name": "Get Competitor Price",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [450, 200]
+      },
+      {
+        "parameters": {
+          "functionCode": "const index = items[0].json.value;\nconst comp  = items[1].json.median;\nconst newPrice = Math.min(Math.max(index * 1.02, comp * 0.98), comp * 1.05);\nreturn [{ json: { price: Number(newPrice.toFixed(2)) } }];"
+        },
+        "name": "Calculate Price",
+        "type": "n8n-nodes-base.function",
+        "typeVersion": 1,
+        "position": [650, 200]
+      },
+      {
+        "parameters": {
+          "url": "https://api.yourstore.com/products/123/price",
+          "method": "POST",
+          "jsonParameters": true,
+          "bodyParametersJson": "={ \"price\": $json[\"price\"] }"
+        },
+        "name": "Update Price",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 1,
+        "position": [850, 200]
+      }
+    ],
+    "connections": {
+      "Get Index Price": {
+        "main": [
+          [
+            { "node": "Get Competitor Price", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Get Competitor Price": {
+        "main": [
+          [
+            { "node": "Calculate Price", "type": "main", "index": 0 }
+          ]
+        ]
+      },
+      "Calculate Price": {
+        "main": [
+          [
+            { "node": "Update Price", "type": "main", "index": 0 }
+          ]
+        ]
+      }
+    }
+  }
+  
